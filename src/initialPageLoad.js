@@ -1,17 +1,21 @@
 export function loadJS() {
+  
   window.addEventListener('load', () => {
     let todos = JSON.parse(localStorage.getItem('todos')) || [];
+    console.log(todos)
+
     const nameInput = document.querySelector('#name');
     const newTodoForm = document.querySelector('#new-todo-form');
   
     const username = localStorage.getItem('username') || '';
+    
     nameInput.value = username;
     
-    nameInput.addEventListener('change', e => {
+    nameInput.addEventListener('change', (e) => {
       localStorage.setItem('username', e.target.value);
     });
   
-    newTodoForm.addEventListener('submit', e => {
+    newTodoForm.addEventListener('submit', (e) => {
       e.preventDefault();
   
       const todo = {
@@ -27,25 +31,26 @@ export function loadJS() {
   
       localStorage.setItem('todos', JSON.stringify(todos));
   
-      e.target.reset();
+      e.target.reset(); //this part is important because it clears the form which we stopped when using e.preventDefault();
   
-      DisplayTodos();
+      displayTodos(todos); // todos are displayed after form is submitted
     });
   
-    DisplayTodos();
+    displayTodos(todos); //todos are displayed as soon as the page is loaded
   });
   
-  function DisplayTodos() {
+  function displayTodos(todos) {
     const todoList = document.querySelector('#todo-list');
   
     todoList.innerHTML = '';
-    
-    let todos = JSON.parse(localStorage.getItem('todos')) || [];
   
-    todos.sort(function(a, b) {
+    todos
+    .filter((todo) => !todo.deleted)
+    .sort((a, b) => {
       return b.createDate - a.createDate;
-    }).forEach(todo => {
-      const todoItem = document.createElement('div');
+    })
+    .forEach((todo) => {
+      const todoItem = document.createElement('div'); 
       todoItem.classList.add('todo-item');
   
       const label = document.createElement('label');
@@ -85,33 +90,32 @@ export function loadJS() {
   
       todoList.append(todoItem);
   
-      input.addEventListener('click', e => {
+      input.addEventListener('click', (e) => {
         todo.done = e.target.checked;
         localStorage.setItem('todos', JSON.stringify(todos));
-  
-        if(todo.done) {
+      
+        if (todo.done) {
           todoItem.classList.add('done');
         } else {
           todoItem.classList.remove('done');
         }
       });
       
-      edit.addEventListener('click', e => {
+      edit.addEventListener('click', (e) => {
         const input = content.querySelector('input');
         input.removeAttribute('readonly');
         input.focus();
-        input.addEventListener('blur', e => {
+        input.addEventListener('blur', (e) => {
           input.setAttribute('readonly', true);
           todo.content = e.target.value;
           localStorage.setItem('todos', JSON.stringify(todos));
-          DisplayTodos();
         });
       });
-  
-      deleteButton.addEventListener('click', e => {
-        todos = todos.filter(t => t != todo );
+      
+      deleteButton.addEventListener('click', (e) => {
+        todo.deleted = true;
         localStorage.setItem('todos', JSON.stringify(todos));
-        DisplayTodos();
+        displayTodos(todos);
       });
     });
   }
